@@ -25,7 +25,7 @@ def main(api_json_from_server):
     else:
         openapi_input = '/tmp/openapi.json'
         # Call the make_openapi script to generate the openapi.json file.
-        run(f'uv run python -m src.server.make_openapi --output={openapi_input}')
+        run(f'uv run --project src python -m server.make_openapi --output={openapi_input}')
 
     # Generate the web client.
     run(
