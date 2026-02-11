@@ -83,7 +83,7 @@ fi
 
 # Generate TypeScript client
 echo "🔧 Generating TypeScript client..."
-uv run python -m src.scripts.make_fastapi_client || echo "⚠️ Could not generate client (server may not be running yet)"
+uv run --project src python -m scripts.make_fastapi_client || echo "⚠️ Could not generate client (server may not be running yet)"
 
 if [ "$DEPLOYMENT_MODE" = "prod" ]; then
   echo "Building frontend for production..."
@@ -91,7 +91,7 @@ if [ "$DEPLOYMENT_MODE" = "prod" ]; then
   echo "✅ Frontend built successfully"
 
   # In production mode, only start backend (frontend served by FastAPI)
-  uv run uvicorn src.server.app:app --reload --reload-dir src/server --host 0.0.0.0 --port 8000 &
+  uv run --project src uvicorn server.app:app --reload --reload-dir src/server --host 0.0.0.0 --port 8000 &
   BACKEND_PID=$!
   echo "Backend PID: $BACKEND_PID"
 
@@ -104,20 +104,20 @@ else
   echo "Frontend PID: $FRONTEND_PID"
 
   echo "🖥️ Starting backend development server..."
-  uv run uvicorn src.server.app:app --reload --reload-dir src/server --host 0.0.0.0 --port 8000 &
+  uv run --project src uvicorn server.app:app --reload --reload-dir src/server --host 0.0.0.0 --port 8000 &
   BACKEND_PID=$!
   echo "Backend PID: $BACKEND_PID"
 fi
 
 # Auto-regenerate client when server code changes
 echo "🔄 Setting up auto-client generation..."
-uv run watchmedo auto-restart \
+uv run --project src watchmedo auto-restart \
   --patterns="*.py" \
   --debounce-interval=1 \
   --no-restart-on-command-exit \
   --recursive \
   --directory=src/server \
-  uv -- run python -m src.scripts.make_fastapi_client &
+  uv -- run --project src python -m scripts.make_fastapi_client &
 WATCHER_PID=$!
 echo "Watcher PID: $WATCHER_PID"
 
