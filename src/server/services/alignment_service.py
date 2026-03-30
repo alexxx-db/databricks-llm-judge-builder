@@ -3,7 +3,6 @@
 import logging
 from typing import Dict, Optional
 
-import dspy
 import mlflow
 from mlflow.genai import evaluate, scorers
 from mlflow.tracking import MlflowClient
@@ -20,7 +19,6 @@ from server.models import (
     SingleJudgeTestResponse,
     TraceRequest,
 )
-from server.utils import dspy_utils
 from server.utils.constants import ALIGNED_SAMPLES_COUNT
 from server.utils.naming_utils import create_scorer_name, sanitize_judge_name
 from server.utils.parsing_utils import (
@@ -44,10 +42,6 @@ class AlignmentService(BaseService):
 
     def __init__(self):
         super().__init__()
-        # Set up DSPy language model
-        lm = dspy_utils.AgentEvalLM(model=dspy_utils.DEFAULT_ALIGNMENT_MODEL)
-        # Configure DSPy to use this language model
-        dspy.configure(lm=lm)
 
     def _get_judge_scorer(self, judge: JudgeResponse) -> Optional[scorers.Scorer]:
         """Get the scorer for a judge."""

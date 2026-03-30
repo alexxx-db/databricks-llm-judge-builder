@@ -135,12 +135,10 @@ class CacheService:
 
             if runs:
                 run_id = runs[0].info.run_id
-                # Cache the found run
                 self.evaluation_cache[f'{judge_id}:{judge_version}:{dataset_version}'] = run_id
                 return run_id
 
-            # Method 2: Fallback - search by run name pattern if tag search fails
-            # Get judge metadata to find judge name
+            # Method 2: Fallback - search by run name pattern using MLflow filter
             from server.services.judge_service import judge_service
             judge = judge_service.get_judge(judge_id)
             if not judge:
@@ -149,19 +147,17 @@ class CacheService:
             sanitized_name = sanitize_judge_name(judge.name)
             run_name_pattern = f'evaluation_{sanitized_name}_v{judge_version}_{dataset_version}'
 
-            # Search for runs by name pattern
-            all_runs = mlflow.search_runs(
+            name_runs = mlflow.search_runs(
                 experiment_ids=[experiment_id],
+                filter_string=f"run_name = '{run_name_pattern}'",
                 output_format='list',
-                max_results=100  # Limit to avoid performance issues
+                max_results=1,
             )
 
-            for run in all_runs:
-                if run.info.run_name and run.info.run_name == run_name_pattern:
-                    run_id = run.info.run_id
-                    # Cache the found run
-                    self.evaluation_cache[f'{judge_id}:{judge_version}:{dataset_version}'] = run_id
-                    return run_id
+            if name_runs:
+                run_id = name_runs[0].info.run_id
+                self.evaluation_cache[f'{judge_id}:{judge_version}:{dataset_version}'] = run_id
+                return run_id
 
             return None
 

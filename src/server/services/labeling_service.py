@@ -108,13 +108,12 @@ class LabelingService(BaseService):
         """Helper method to get the single labeling session for a judge."""
         all_sessions = labeling.get_labeling_sessions()
 
-        # Look for sessions matching this judge (using short ID)
         short_id = get_short_id(judge_id)
+        # Match the expected session name suffix pattern: {short_id}_labeling
+        expected_suffix = f'{short_id}_labeling'
 
         for session in all_sessions:
-            session_name = session.name
-            # Check if session belongs to this judge (ends with short ID)
-            if short_id in session_name:
+            if session.name and session.name.endswith(expected_suffix):
                 return session
 
         return None

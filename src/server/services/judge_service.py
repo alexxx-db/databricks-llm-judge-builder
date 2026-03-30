@@ -238,11 +238,13 @@ class JudgeService(BaseService):
 
                 metadata = judges_metadata[judge_id]
 
-                # Recreate judge from metadata
+                # Recreate judge from metadata, restoring aligned instructions if available
+                optimized_instructions = metadata.get('optimized_instructions')
                 judge = InstructionJudge(
                     name=metadata['name'],
-                    user_instructions=metadata['instruction'],  # Keep original for display
+                    user_instructions=metadata['instruction'],
                     experiment_id=experiment.experiment_id,
+                    system_instructions=optimized_instructions,
                 )
 
                 # Override auto-generated values with stored ones
@@ -257,10 +259,6 @@ class JudgeService(BaseService):
                 if 'alignment_model_config' in metadata and metadata['alignment_model_config']:
                     from server.models import AlignmentModelConfig
                     judge.alignment_model_config = AlignmentModelConfig(**metadata['alignment_model_config'])
-
-                # For InstructionJudge, we don't need to manually handle optimized instructions
-                # The MLflow judge handles this internally
-                # TODO: We may need to recreate the judge with optimized instructions if needed
 
                 # Cache the recreated judge
                 self._judges[judge_id] = judge

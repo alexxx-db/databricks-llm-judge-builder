@@ -38,16 +38,17 @@ def to_attrdict(obj):
 
 class AgentEvalLM(dspy.BaseLM):
     def __init__(self, model: str, temperature: float = 1.0):
-        super().__init__('databricks/databricks-llama-4-maverick')
+        super().__init__(f'databricks/{model}')
         self.model = model
         self.temperature = temperature
         env_vars.RAG_EVAL_EVAL_SESSION_CLIENT_NAME.set(f'judge-builder-v{VERSION}')
 
     def dump_state(self):
-        return {}
+        return {'model': self.model, 'temperature': self.temperature}
 
     def load_state(self, state):
-        pass
+        self.model = state.get('model', self.model)
+        self.temperature = state.get('temperature', self.temperature)
 
     def forward(self, prompt=None, messages=None, **kwargs):
         return self._forward_impl(prompt=prompt, messages=messages, **kwargs)

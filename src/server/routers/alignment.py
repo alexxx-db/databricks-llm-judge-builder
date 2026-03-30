@@ -90,17 +90,11 @@ async def get_alignment_status(judge_id: str):
     status_info = alignment_status[judge_id]
 
     if status_info.status == 'completed':
-        # Clear the status after returning the result
-        result = status_info.result
-        del alignment_status[judge_id]
-        return {'status': 'completed', 'result': result}
+        return {'status': 'completed', 'result': status_info.result}
     elif status_info.status == 'failed':
-        # Clear the status after returning the error
         error_type = status_info.error_type
         error_message = status_info.error_message
-        del alignment_status[judge_id]
 
-        # Return appropriate HTTP error based on error type
         if error_type == 'not_found':
             raise HTTPException(status_code=404, detail=error_message)
         elif error_type == 'optimization_failure':
@@ -109,6 +103,14 @@ async def get_alignment_status(judge_id: str):
             raise HTTPException(status_code=500, detail=error_message)
     else:
         return {'status': 'running'}
+
+
+@router.delete('/{judge_id}/align-status')
+async def clear_alignment_status(judge_id: str):
+    """Clear the alignment status for a judge after the client has consumed the result."""
+    if judge_id in alignment_status:
+        del alignment_status[judge_id]
+    return {'status': 'cleared'}
 
 
 @router.post('/{judge_id}/evaluate', response_model=EvaluationResult)

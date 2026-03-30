@@ -87,15 +87,12 @@ cd ../..
 echo "📦 Generating requirements.txt..."
 uv run python src/scripts/generate_semver_requirements.py
 
-# Create/update app.yaml with environment variables
-echo "📝 Updating app.yaml with environment variables..."
+# Create/update app.yaml
+echo "📝 Updating app.yaml..."
 cat > src/app.yaml << EOF
 command:
   - "uvicorn"
   - "server.app:app"
-env:
-  - name: "JUDGE_OPTIMIZER"
-    value: "${JUDGE_OPTIMIZER:-simba}"
 EOF
 
 # Create workspace directory and sync source

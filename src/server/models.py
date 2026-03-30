@@ -83,7 +83,6 @@ class TraceExample(BaseModel):
     )
 
     @classmethod
-    @classmethod
     def from_traces(cls, traces) -> List['TraceExample']:
         """Create Example objects from MLflow trace objects."""
         from server.utils.parsing_utils import (

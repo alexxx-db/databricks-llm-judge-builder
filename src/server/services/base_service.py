@@ -30,20 +30,31 @@ def get_shared_mlflow_client():
 
 
 def _validate_auth():
-    """Validate Databricks authentication credentials."""
+    """Validate Databricks authentication credentials.
+
+    Raises RuntimeError if no valid authentication configuration is found,
+    unless running inside a Databricks App (where credentials are injected
+    automatically and env vars may not be set at import time).
+    """
     databricks_host = os.getenv('DATABRICKS_HOST')
     databricks_token = os.getenv('DATABRICKS_TOKEN')
     databricks_client_id = os.getenv('DATABRICKS_CLIENT_ID')
     databricks_client_secret = os.getenv('DATABRICKS_CLIENT_SECRET')
+    databricks_config_profile = os.getenv('DATABRICKS_CONFIG_PROFILE')
 
     has_token_auth = databricks_host and databricks_token
     has_oauth_auth = databricks_host and databricks_client_id and databricks_client_secret
+    has_profile = bool(databricks_config_profile)
 
-    if not (has_token_auth or has_oauth_auth):
-        # Don't fail here, just surface a potential issue
-        logger.error(
-            'Databricks authentication required: Set DATABRICKS_HOST and '
-            '(DATABRICKS_TOKEN or DATABRICKS_CLIENT_ID+DATABRICKS_CLIENT_SECRET)'
+    # Inside Databricks Apps, credentials are injected via the runtime — env vars
+    # may not be present at startup. Also accept a configured CLI profile.
+    if not (has_token_auth or has_oauth_auth or has_profile):
+        logger.warning(
+            'No Databricks authentication found via env vars or CLI profile. '
+            'If running inside Databricks Apps, credentials will be injected automatically. '
+            'Otherwise set DATABRICKS_HOST and '
+            '(DATABRICKS_TOKEN or DATABRICKS_CLIENT_ID+DATABRICKS_CLIENT_SECRET) '
+            'or DATABRICKS_CONFIG_PROFILE.'
         )
 
 
