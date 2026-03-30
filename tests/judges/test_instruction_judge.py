@@ -80,18 +80,16 @@ class TestInstructionJudge(TestCase):
         mock_scorer.register.assert_called_once()
 
     def test_scorer_registration_handles_failure(self):
-        """Test scorer registration gracefully handles failures."""
+        """Test scorer registration re-raises non-permission errors."""
         judge = InstructionJudge(name='Test Judge', user_instructions='Rate {{ inputs }} and {{ outputs }}')
-        
+
         # Replace scorer_func with a mock that fails registration
         mock_scorer = Mock()
         mock_scorer.register.side_effect = Exception("Registration failed")
         judge.scorer_func = mock_scorer
-        
-        result = judge.register_scorer()
 
-        # Should handle error gracefully and return None
-        self.assertIsNone(result)
+        with self.assertRaises(Exception):
+            judge.register_scorer()
 
     def test_judge_optimization_success(self):
         """Test successful judge optimization with training data."""
@@ -110,7 +108,10 @@ class TestInstructionJudge(TestCase):
         # Should return success and update judge
         self.assertTrue(result)
         self.assertEqual(judge.scorer_func, mock_aligned_judge)
-        mock_scorer.align.assert_called_once_with(traces=traces)
+        mock_scorer.align.assert_called_once()
+        call_kwargs = mock_scorer.align.call_args
+        self.assertEqual(call_kwargs.kwargs['traces'], traces)
+        self.assertIn('optimizer', call_kwargs.kwargs)
 
     def test_judge_optimization_handles_failure(self):
         """Test judge optimization handles alignment failures."""

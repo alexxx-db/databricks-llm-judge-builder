@@ -291,12 +291,14 @@ Thumbs.db
 # Application specific
 mlruns/
 mlartifacts/
+mlflow.db
 
 # Databricks
 .databricks/
 
 # UV
 .uv/
+src/uv.lock
 
 # Generated client
 client/src/client/
